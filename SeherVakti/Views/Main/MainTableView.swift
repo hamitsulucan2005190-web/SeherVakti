@@ -20,14 +20,14 @@ struct MainTableView: View {
         TabView(selection: $selectedTab){
             
             // 1. Sekme: Ana Sayfa
-            Text("Ana Sayfa Ekranı")
-                .tabItem{
-                    Label("Ana Sayfa",systemImage: "house.fill")
-                }
-                .tag(0) // sekmenin kimlik numarası
+                      DashboardView() //  Yazı yerine DashboardView sayfamızı koyduk
+                          .tabItem{
+                              Label("Ana Sayfa", systemImage: "house.fill")
+                          }
+                          .tag(0) // sekmenin kimlik numarası
             
             // 2. Sekme: Namaz Vakitleri
-            Text("Namaz Vakitleri Ekranı")
+            PrayerTimesView()
                 .tabItem {
                     Label("Vakitler", systemImage: "clock.fill")
                         }

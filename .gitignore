@@ -1,0 +1,19 @@
+# Xcode
+#
+build/
+DerivedData/
+*.hmap
+*.ipa
+*.playground.xml
+xcuserdata/
+
+# Package Manager
+#
+.swiftpm/
+.build/
+
+# macOS
+#
+.DS_Store
+*.swp
+*.lock

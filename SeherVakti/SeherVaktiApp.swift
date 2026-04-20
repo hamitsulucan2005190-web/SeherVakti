@@ -13,6 +13,7 @@ struct SeherVaktiApp: App {
     // Veritabanı (SwiftData) konteynırı burada tanımlanıyor
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
+            PrayerLog.self, //  yeni modelimizi buraya tanıttık
             Item.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)

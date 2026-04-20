@@ -10,9 +10,22 @@
 		A97AD7952F8BCABA00A5C1C4 /* SeherVakti.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SeherVakti.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A99EA31D2F93AC7800C67297 /* Exceptions for "SeherVakti" folder in "SeherVakti" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Untitled.swift,
+			);
+			target = A97AD7942F8BCABA00A5C1C4 /* SeherVakti */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A97AD7972F8BCABA00A5C1C4 /* SeherVakti */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A99EA31D2F93AC7800C67297 /* Exceptions for "SeherVakti" folder in "SeherVakti" target */,
+			);
 			path = SeherVakti;
 			sourceTree = "<group>";
 		};
@@ -38,6 +51,7 @@
 			sourceTree = "<group>";
 		};
 		A97AD7962F8BCABA00A5C1C4 /* Products */ = {
+			isa = PBXGroup;
 			children = (
 				A97AD7952F8BCABA00A5C1C4 /* SeherVakti.app */,
 			);
