@@ -34,22 +34,34 @@ struct MainTableView: View {
                 .tag(1)
             
             // 3. Sekme: İyilik Defteri
-                       Text("İyilik Defteri Ekranı")
+                       JournalView()
                            .tabItem {
                                Label("Defter", systemImage: "book.fill")
                            }
                            .tag(2)
             
-            // 4. Sekme: Ayarlar
-                        Text("Ayarlar Ekranı")
-                            .tabItem {
-                                Label("Ayarlar", systemImage: "gearshape.fill")
-                            }
-                            .tag(3)
-            
-            
-            
+            // 4. Sekme: Odaklanma (Zikirmatik)
+            FocusView()
+                .tabItem {
+                    // Sayac/Zamanlayıcı ikonu
+                    Label("Odaklanma", systemImage: "timer")
+                }
+                .tag(3)
+
+                     
+            // 5. Sekme: Ayarlar
+            SettingsView()
+                .tabItem {
+                    Label("Ayarlar", systemImage: "gearshape.fill")
+                }
+                .tag(4)
         }
+
+
+
+            
+            
+           // Tüm sekmelerde seçili olanın (aktif) rengini temamızın ana rengi (Orman Yeşili) yapıyoruz.
         .accentColor(AppTheme.Colors.primary)
        
     }

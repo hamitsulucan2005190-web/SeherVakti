@@ -5,6 +5,9 @@ struct DashboardView: View {
     @State private var viewModel = DashboardViewModel()
     @Environment(\.modelContext) private var modelContext
     @Query private var logs: [PrayerLog]
+
+    // kullanıcı adını hafızadan çekme 
+    @AppStorage("userName") private var userName: String = "Misafir"
     
     var body: some View {
         ScrollView {
@@ -41,7 +44,7 @@ struct DashboardView: View {
                 .font(.system(.subheadline, design : .rounded)) // yuvarlak hatlı yazı tipi  
                 .foregroundColor(.secondary)
             
-            Text("Hayırlı Sabahlar,\nSelamün Aleyküm")
+            Text("Hayırlı Sabahlar,\n\(userName)")
                 .font(.system(size: 34, weight: .bold, design: .rounded))
                 .lineSpacing(4) // satır aralığı
                 .foregroundColor(AppTheme.Colors.primary)
