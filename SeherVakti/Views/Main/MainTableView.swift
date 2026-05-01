@@ -27,9 +27,10 @@ struct MainTableView: View {
                           .tag(0) // sekmenin kimlik numarası
             
             // 2. Sekme: Namaz Vakitleri
-            PrayerTimesView()
+            HistoryView()
                 .tabItem {
-                    Label("Vakitler", systemImage: "clock.fill")
+                    Label("Takip", systemImage: "chart.bar.fill")
+                    
                         }
                 .tag(1)
             

@@ -1,52 +1,72 @@
-//
-//  DashboardViewModel.swift
-//  SeherVakti
-//
-//  Created by Hamit Sulucan on 18.04.2026.
-//
-
 import Foundation
-
 import Observation
+import SwiftUI
 
-// Dashboard ekranının tüm mantığını yöneten sınıf
 @Observable
 class DashboardViewModel {
     
-    // Tüm namaz vakitlerini tutan liste
+    // Kullanıcı verileri (AppStorage'dan çekiliyor)
+    private var userCity: String {
+        UserDefaults.standard.string(forKey: "userCity") ?? "İstanbul"
+    }
+    
+    var userName: String {
+        UserDefaults.standard.string(forKey: "userName") ?? "Misafir"
+    }
+    
+    // Veri Durumları
     var prayerTimes: [PrayerTime] = []
+    var timeRemaining: String = "00:00:00"
+    var isLoading: Bool = false
+    var errorMessage: String? = nil
     
-    var timeRemaining:String = "00:00:00" // sayaç
-    
-    // Timer referansını tutuyoruz
-        private var timer: Timer?
+    private var timer: Timer?
 
-    
-    // Bir sonraki vaktin hangisi olduğunu bulan hesaplamalı özellik
+    // Sonraki vaktin hesaplanması
     var nextPrayer: PrayerTime? {
-        // Vakitler içinde saati şu andan ileri olan ilk vakti bulur
-        return prayerTimes.first(where: { !$0.isPassed }) ?? prayerTimes.first
+        let now = Date()
+        return prayerTimes.first(where: { $0.date > now }) ?? prayerTimes.first
     }
-    // Uygulama açık olduğu sürece her saniye çalışacak fonksiyon
-     private func startTimer() {
-         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-             self.updateCountdown()
-         }
-     }
     
-    // ViewModel oluşturulduğunda çalışacak başlangıç fonksiyonu
     init() {
-        loadMockData()
-        startTimer() // Başlangıçta timer'ı çalıştır
+        Task {
+            await fetchPrayerTimes()
+        }
+        startTimer()
     }
-    // Kalan süreyi hesaplayan asıl mantık
+    
+    // Gerçek Veri Çekme Fonksiyonu
+    func fetchPrayerTimes() async {
+        await MainActor.run { isLoading = true; errorMessage = nil }
+        
+        do {
+            let timings = try await PrayerTimeService.shared.fetchDailyTimings(city: userCity)
+            let parsed = parseTimings(timings)
+            
+            await MainActor.run {
+                self.prayerTimes = parsed
+                self.isLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                self.isLoading = false
+                self.errorMessage = "Vakitler yüklenemedi."
+            }
+        }
+    }
+    
+    // Geri Sayım Mantığı
     private func updateCountdown() {
         guard let next = nextPrayer else { return }
         
-        let diff = next.date.timeIntervalSince(Date())
+        var nextDate = next.date
+        if nextDate < Date() {
+            nextDate = Calendar.current.date(byAdding: .day, value: 1, to: nextDate) ?? nextDate
+        }
+        
+        let diff = nextDate.timeIntervalSince(Date())
         
         if diff > 0 {
-            // Saniyeyi Saat:Dakika:Saniye formatına çevirir
             let hours = Int(diff) / 3600
             let minutes = Int(diff) % 3600 / 60
             let seconds = Int(diff) % 60
@@ -55,21 +75,38 @@ class DashboardViewModel {
             timeRemaining = "Vakit Geldi!"
         }
     }
+
+    private func startTimer() {
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.updateCountdown()
+        }
+    }
     
-    // Test amaçlı geçici veriler yükler (Gerçek API gelene kadar)
-    private func loadMockData() {
-        let calendar = Calendar.current
-        let today = Date()
+    // Saati Date formatına çeviren yardımcı fonksiyon
+    private func parseTimings(_ timings: Timings) -> [PrayerTime] {
+        let names = ["İmsak", "Güneş", "Öğle", "İkindi", "Akşam", "Yatsı"]
+        let rawTimes = [timings.Fajr, timings.Sunrise, timings.Dhuhr, timings.Asr, timings.Maghrib, timings.Isha]
         
-        // Örnek vakitler oluşturuyoruz
-        prayerTimes = [
-            PrayerTime(name: "İmsak", date: calendar.date(bySettingHour: 4, minute: 30, second: 0, of: today)!),
-            PrayerTime(name: "Güneş", date: calendar.date(bySettingHour: 6, minute: 05, second: 0, of: today)!),
-            PrayerTime(name: "Öğle", date: calendar.date(bySettingHour: 13, minute: 15, second: 0, of: today)!),
-            PrayerTime(name: "İkindi", date: calendar.date(bySettingHour: 17, minute: 02, second: 0, of: today)!),
-            PrayerTime(name: "Akşam", date: calendar.date(bySettingHour: 19, minute: 55, second: 0, of: today)!),
-            PrayerTime(name: "Yatsı", date: calendar.date(bySettingHour: 21, minute: 30, second: 0, of: today)!)
-        ]
+        var result: [PrayerTime] = []
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        
+        let calendar = Calendar.current
+        let now = Date()
+        
+        for (index, timeStr) in rawTimes.enumerated() {
+            if let date = formatter.date(from: timeStr) {
+                var components = calendar.dateComponents([.year, .month, .day], from: now)
+                let timeComponents = calendar.dateComponents([.hour, .minute], from: date)
+                components.hour = timeComponents.hour
+                components.minute = timeComponents.minute
+                
+                if let finalDate = calendar.date(from: components) {
+                    result.append(PrayerTime(name: names[index], date: finalDate))
+                }
+            }
+        }
+        return result
     }
 }
-

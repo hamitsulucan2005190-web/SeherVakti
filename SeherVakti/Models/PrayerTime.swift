@@ -7,20 +7,25 @@
 
 import Foundation
 
-// Her bir namaz vaktini temsil eden veri yapımız
-struct PrayerTime: Identifiable {
-    // Benzersiz kimlik (SwiftUI listelerinde performans için gerekli)
-    let id = UUID()
-    
-    // Vaktin ismi (Örn: "İmsak", "Güneş", "Öğle" vb.)
+struct PrayerTime: Identifiable, Codable {
+    var id = UUID()
     let name: String
-    
-    // Vaktin tam saati
     let date: Date
     
-    // Vaktin geçtiğini mi yoksa gelecek vakit mi olduğunu kontrol eder
+    var timeString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+    
     var isPassed: Bool {
         return date < Date()
     }
+    
+    var isNext: Bool {
+        // ViewModel'deki nextPrayer ile aynı mı kontrolü
+        return false // (Bu opsiyoneldir)
+    }
 }
+
 

@@ -10,6 +10,7 @@
 import SwiftUI
 import Combine
 import Observation
+import SwiftData
 
 // View'da değişiklik olduğunda arayüzü güncellemesi için Observable(UI güncelleyici) kullanıyoruz
 @Observable
@@ -19,8 +20,31 @@ class FocusViewModel {
            case focus  // Odaklanma (Pomodoro/Ders vb.) modu
            case dhikr  // Sadece Zikir çekme modu
        }
-   //    Uygulama açıldığında varsayılan olarak "Odak" modu seçili gelsin
+   
         var currentMode: FocusMode = .focus
+
+        // odak oturumu için özel tip
+        enum FocusCategory:String,CaseIterable {
+            case kuran    = "Kur'an Okuma"
+            case ilim     = "İlim Çalışması"
+          case tefekkur = "Tefekkür"
+          case ozel = "Ozel"
+            
+        }
+        // Seçilen kategori (varsayılan: Kur'an Okuma)
+        var selectedCategory: FocusCategory = .kuran
+        // Kullanıcının yazdığı özel isim (sadece "Özel..." seçilince kullanılır)
+        var customSessionTitle: String = ""
+
+        var finalSessionTitle: String {
+        if selectedCategory == .ozel && !customSessionTitle.isEmpty {
+        return customSessionTitle   // kullanıcının kendi yazdığı isim
+    }
+    return selectedCategory.rawValue  // hazır kategori adı (örn: "Kur'an Okuma")
+}
+
+
+
     
     // Zikir sayacı değişkeni
     var dhikrCount: Int = 0
@@ -54,11 +78,11 @@ class FocusViewModel {
     
     // Toplam odaklanma süresi (Artık sabit değil, değişkene bağlı)
     var totalFocusTime: TimeInterval = 1500
+
     
-    // Kalan zaman
     var timeRemaining: TimeInterval = 1500
     
-    // Sayaç aktif mi?
+    
     var isRunning: Bool = false
     
     // Timer objesini tuttuğumuz değişken
@@ -122,6 +146,40 @@ class FocusViewModel {
     func resetDhikr() {
         dhikrCount = 0
     }
+  
+
+    // Odak seansını veritabanına kaydeder
+    // modelContext parametresi: View'dan gelir (@Environment ile)
+    // title parametresi: Kullanıcının seansa verdiği isim
+    func saveFocusLog(context: ModelContext, title: String = "Odak Seansı") {
+        
+        // Kaç dakika odaklanıldığını hesapla (toplam - kalan = geçen süre)
+        let elapsedSeconds = totalFocusTime - timeRemaining
+        let elapsedMinutes = Int(elapsedSeconds / 60)
+        
+        // En az 1 dakika geçmediyse kaydetme (anlamsız seansları filtrele)
+        guard elapsedMinutes >= 1 else { return }
+        
+        // Yeni bir FocusLog nesnesi oluştur
+        let log = FocusLog(title: title, durationMinutes: elapsedMinutes)
+        
+        // SwiftData'ya "bunu veritabanına ekle" komutunu ver
+        context.insert(log)
+    }
+
+    // Zikir seansını veritabanına kaydeder
+    func saveDhikrLog(context: ModelContext) {
+        
+        // Hiç zikir çekilmediyse kaydetme
+        guard dhikrCount > 0 else { return }
+        
+        // Yeni bir DhikrLog nesnesi oluştur
+        let log = DhikrLog(title: dhikrTitle, count: dhikrCount, target: dhikrTarget)
+        
+        // SwiftData'ya kaydet
+        context.insert(log)
+    }
+
 
     
     

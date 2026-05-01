@@ -6,10 +6,15 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct PrayerTimesView: View {
     // ViewModel'imizi buraya da dahil ediyoruz (Verilere erişmek için)
     @State private var viewModel = DashboardViewModel()
+    @Environment(\.modelContext) private var modelContext
+
+    // Hangi namazların kılındığını takip eder (Set: tekrarsız liste)
+    @State private var completedPrayers: Set<String> = []
     var body: some View {
         NavigationStack{
             ScrollView{
@@ -29,6 +34,33 @@ struct PrayerTimesView: View {
                                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                                     
                                     Spacer()
+                                    // kıldım butonu 
+                                    Button(action: {
+    // Bu namazı "tamamlandı" listesine ekle
+    completedPrayers.insert(prayer.name)
+    
+    // ← BU SATIR BURAYA GİRİYOR (isCompleted: true ekli hali)
+    let log = PrayerLog(prayerName: prayer.name, date: prayer.date, isCompleted: true)
+    
+    // SwiftData'ya kaydet
+    modelContext.insert(log)
+}) {
+    // Kılındıysa yeşil tik, kılınmadıysa gri buton göster
+    if completedPrayers.contains(prayer.name) {
+        Image(systemName: "checkmark.circle.fill")
+            .font(.title2)
+            .foregroundColor(.green)
+    } else {
+        Text("Kıldım")
+            .font(.system(size: 13, weight: .bold, design: .rounded))
+            .foregroundColor(AppTheme.Colors.primary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(AppTheme.Colors.primary.opacity(0.1))
+            .clipShape(Capsule())
+    }
+}
+
                                     
                                     Text(prayer.date, style: .time)
                                         .font(.system(size: 22, weight: .bold, design: .rounded))

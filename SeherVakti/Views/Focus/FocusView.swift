@@ -1,8 +1,44 @@
 import SwiftUI
-
+import SwiftData
 struct FocusView: View {
     // ViewModel'imizi View'e bağladık
     @State private var viewModel = FocusViewModel()
+
+    // veritabanına erişmek için
+        @Environment(\.modelContext) private var modelContext
+            // @Query'yi doğrudan tanımlıyoruz — init içinde dolduracağız
+    @Query private var todayFocusLogs: [FocusLog]
+    @Query private var todayDhikrLogs: [DhikrLog]
+    
+    // init: @Query'yi özelleştirmek için bu yöntemi kullanıyoruz
+   
+    // Tarihi init içinde hesaplayıp, predicate'e sadece değer veriyoruz.
+    init() {
+        // Bugünün saat 00:00'ını hesapla — predicate dışında!
+        let startOfToday = Calendar.current.startOfDay(for: .now)
+        
+        // _todayFocusLogs → @Query'nin iç değişkenine erişim yolu (underscore prefix)
+        _todayFocusLogs = Query(
+            filter: #Predicate<FocusLog> { log in
+                // Artık sabit bir tarih değeriyle karşılaştırıyoruz ✓
+                log.date >= startOfToday
+            },
+            sort: \FocusLog.date,
+            order: .reverse
+        )
+        
+        _todayDhikrLogs = Query(
+            filter: #Predicate<DhikrLog> { log in
+                log.date >= startOfToday
+            },
+            sort: \DhikrLog.date,
+            order: .reverse
+        )
+    }
+
+
+
+
     
     var body: some View {
         NavigationStack {
@@ -23,9 +59,66 @@ struct FocusView: View {
                         
                         // 🌟 SADECE ODAK MODUNDAYSA GÖSTERİLİR
                         if viewModel.currentMode == .focus {
+
                             
                             // Sayacı ve Butonları saran tek ve güvenli bir gövde
                             VStack(spacing: 50) {
+                                // --- OTURUM KARTI: Sadece sayaç duruyorken göster ---
+if !viewModel.isRunning {
+    VStack(alignment: .leading, spacing: 12) {
+        
+        // Başlık etiketi
+        Text("Çalışma Türü")
+            .font(.system(size: 12, weight: .bold, design: .rounded))
+            .foregroundColor(.secondary)
+            .textCase(.uppercase)
+        
+        // Hazır kategori seçenekleri (yatay kaydırmalı)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                // Tüm kategorileri döngüyle göster
+                ForEach(FocusViewModel.FocusCategory.allCases, id: \.self) { category in
+                    Button(action: {
+                        // Seçilen kategoriyi ViewModel'e kaydet
+                        viewModel.selectedCategory = category
+                    }) {
+                        Text(category.rawValue)
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundColor(
+                                // Seçili olanı vurgula
+                                viewModel.selectedCategory == category ? .white : AppTheme.Colors.primary
+                            )
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(
+                                viewModel.selectedCategory == category
+                                    ? AppTheme.Colors.primary          // seçili → dolu
+                                    : AppTheme.Colors.primary.opacity(0.1)  // seçili değil → soluk
+                            )
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+            .padding(.horizontal, 2)
+        }
+        
+        // Sadece "Özel..." seçiliyse TextField göster
+        if viewModel.selectedCategory == .ozel {
+            TextField("Çalışma adını yaz... (örn: Matematik)", text: $viewModel.customSessionTitle)
+                .font(.system(size: 15, design: .rounded))
+                .padding(12)
+                .background(Color.secondary.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+    }
+    .padding(20)
+    .background(AppTheme.Colors.surfaceLowest)
+    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.mainCard))
+    .shadow(color: .black.opacity(0.04), radius: 8, y: 4)
+    .padding(.horizontal, 20)
+}
+
+                                
                                 // ÜST KISIM: ZAMANLAYICI VE PROGRESS BAR
                                 ZStack {
                                     Circle()
@@ -83,7 +176,11 @@ struct FocusView: View {
                                 // ALT KISIM (BEYAZ ALAN): KONTROLLER (BAŞLAT/BİTİR VE SIFIRLA)
                                 VStack(spacing: 16) {
                                     Button(action: {
-                                        if viewModel.isRunning { viewModel.stopFocus() }
+                                        if viewModel.isRunning {
+                                            // durdurmadan önce kaydetme
+                                            viewModel.saveFocusLog(context: modelContext,title: viewModel.finalSessionTitle)
+                                            
+                                             viewModel.stopFocus() }
                                         else { viewModel.startFocus() }
                                     }) {
                                         Text(viewModel.isRunning ? "Odaklanmayı Bitir" : "Odaklanmayı Başlat")
@@ -107,6 +204,110 @@ struct FocusView: View {
                                 }
                                 .padding(.bottom, 20)
                             }
+                            // BUGÜNKÜ OTURUMLAR LİSTESİ
+if !todayFocusLogs.isEmpty || !todayDhikrLogs.isEmpty {
+    VStack(alignment: .leading, spacing: 12) {
+        
+        // Başlık satırı + toplam dakika
+        HStack {
+            Text("Bugünkü Oturumlar")
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundColor(AppTheme.Colors.primary)
+            Spacer()
+            let totalMin = todayFocusLogs.reduce(0) { $0 + $1.durationMinutes }
+            Text("Toplam: \(totalMin) dk")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 20)
+        
+        // Odak seansları listesi
+        ForEach(todayFocusLogs) { log in
+            HStack(spacing: 14) {
+                // İkon
+                Image(systemName: "brain.head.profile")
+                    .font(.title3)
+                    .foregroundColor(AppTheme.Colors.primary)
+                    .frame(width: 40, height: 40)
+                    .background(AppTheme.Colors.primary.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                
+                // Başlık ve zaman
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(log.title)
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppTheme.Colors.primary)
+                    Text(log.date.formatted(date: .omitted, time: .shortened))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                // Süre ve Tamamlandı rozeti
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(log.durationMinutes) dk")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(AppTheme.Colors.primary)
+                    Text("TAMAMLANDI")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(AppTheme.Colors.primary)
+                        .clipShape(Capsule())
+                }
+            }
+            .padding(14)
+            .background(AppTheme.Colors.surfaceLowest)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .padding(.horizontal, 20)
+        }
+        
+        // Zikir seansları listesi
+        ForEach(todayDhikrLogs) { log in
+            HStack(spacing: 14) {
+                Image(systemName: "circle.dotted")
+                    .font(.title3)
+                    .foregroundColor(.orange)
+                    .frame(width: 40, height: 40)
+                    .background(Color.orange.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(log.title)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(AppTheme.Colors.primary)
+                        .lineLimit(1)
+                    Text(log.date.formatted(date: .omitted, time: .shortened))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(log.count) adet")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(.orange)
+                    Text("TAMAMLANDI")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Color.orange)
+                        .clipShape(Capsule())
+                }
+            }
+            .padding(14)
+            .background(AppTheme.Colors.surfaceLowest)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .padding(.horizontal, 20)
+        }
+    }
+    .padding(.top, 10)
+}
+
                         }
                         
                         // 🌟 SADECE ZİKİR MODUNDAYSA GÖSTERİLİR
@@ -183,6 +384,7 @@ struct FocusView: View {
                                 
                                 // 3. Sıfırlama Butonu
                                 Button(action: {
+                                    viewModel.saveDhikrLog(context: modelContext)
                                     viewModel.resetDhikr()
                                 }) {
                                     HStack {

@@ -1,4 +1,4 @@
-# Seher Vakti - Ürün Yol Haritası (Görev Listesi)
+# Seher Vakti — Ürün Yol Haritası (Görev Listesi)
 
 ## 📌 Tamamlanan Görevler (Phase 1: UI & Architecture)
 - [x] MVVM Mimari Kurgusunun Kurulması
@@ -11,27 +11,50 @@
 - [x] Odaklanma / Zikirmatik Ekranı (Animasyonlar ve Temel Sayaç)
 - [x] Ayarlar (Settings) Mükemmelleştirilmiş Şık Custom Tasarım
 
-## 🚧 Yapılacaklar Listesi (Phase 2: Core Logic & Data Flow)
+## 📌 Tamamlanan Görevler (Phase 2: Core Logic & Data Flow)
+- [x] Onboarding ekranı (İsim + Şehir girişi, AppStorage)
+- [x] Dark / Light Mode Tema Motoru
+- [x] DhikrLog + FocusLog SwiftData modelleri
+- [x] SeherVaktiApp ModelContainer güncellemesi
+- [x] FocusViewModel — saveFocusLog() + saveDhikrLog()
+- [x] FocusView — Oturum kategorisi seçimi (Kur'an, İlim, Tefekkür, Özel)
+- [x] FocusView — "Bugünkü Oturumlar" bölümü
+- [x] PrayerTimesView — "Kıldım ✓" butonu + PrayerLog kaydı
+- [x] HistoryView (Takip sekmesi) — temel liste + özet kart
+- [x] MainTableView — "Vakitler" → "Takip" sekmesine dönüştürüldü
 
-### 1. Karşılama Ekranı (Onboarding) ve Veri Hafızası
-- [ ] Uygulama ilk kez açıldığında gösterilecek "Karşılama" (Onboarding) ekranını tasarlamak.
-- [ ] Kullanıcıdan İsim bilgisini almak ve `@AppStorage` ile cihaza kaydetmek.
-- [ ] Kullanıcıdan Şehir / Konum bilgisini almak.
-- [ ] Ayarlar (Settings) ve Ana Sayfa'daki (Dashboard) statik ("AD, Amel Defteri", "İstanbul") yazıların dinamik olarak kullanıcı verisiyle eşleştirilmesi.
+---
 
-### 2. Tema Motoru (Dark/Light Mode)
-- [ ] Ayarlar ekranındaki "Karanlık Mod" geçiş butonuna (Toggle) işlevsellik kazandırmak.
-- [ ] `preferredColorScheme` kullanılarak uygulamanın rengini anında ayarlarla eşitlemek.
+## 🚧 Yapılacaklar Listesi (Phase 3: Motivasyon & Takip)
 
-### 3. Gerçek Namaz Vakitleri Algoritması (API / Framework)
-- [ ] Namaz Vakitleri için lokal bir kütüphane (Adhan Swift) veya direkt Diyanet web servisi bağlantısı kurmak.
-- [ ] Ayarlardaki şehre (veya GPS verisine) dayanarak gerçek namaz saatleri matematiğini yapmak.
-- [ ] Anasayfadaki "Sıradaki Vakte Kalan Süre" bileşenini gerçek zamanlı çalışır duruma getirmek.
+### 1. Dashboard Yeniden Tasarımı
+- [ ] Dinamik tarih (Date.now.formatted ile Miladi tarih)
+- [ ] Streak (ardışık gün) sayacı bileşeni
+- [ ] Günlük Hadis Kartı (3 hadis döngüsü, internet gerektirmez)
+- [ ] Dashboard ibadet özet kartını kaldır (Takip sekmesi var)
 
-### 4. Bildirim Sistemi (Local Notifications)
-- [ ] iOS UNUserNotificationCenter üzerinden uygulamaya girerken bildirim izni (Popup) listesi eklemek.
-- [ ] Yeni bir namaz vakti girdiğinde veya X dakika öncesinde lokal bildirim (hatırlatıcı) göndermek üzere zamanlamak.
-- [ ] Ayarlardaki "Namaz Bildirimleri" toggle butonu ile sesli/sessiz yönetimi yapmak.
+### 2. Kaza Borcu Takip Sistemi
+- [ ] SettingsView → "Kaza Borcu" bölümü (kullanıcı toplam vakit/gün girer)
+- [ ] AppStorage ile kaza sayaçları: kazaNamazTotal, kazaNamazCompleted, kazaOrucTotal, kazaOrucCompleted
+- [ ] HistoryView → Kaza Namazı ilerleme çubuğu kartı
+- [ ] HistoryView → Kaza Orucu ilerleme çubuğu kartı
+- [ ] HistoryView → "Bugün Kaza Kıldım" butonu (sayacı artırır)
+
+### 3. Odak Seansı Success Screen
+- [ ] FocusView — Timer bitince sheet açılır
+- [ ] Success screen — "Maşallah! X dakika odaklandın 🎉"
+- [ ] Success screen — rastgele hadis göster
+- [ ] Success screen — "Kaydet" / "Vazgeç" butonu
+
+### 4. Gerçek Namaz Vakitleri API
+- [ ] Aladhan API bağlantısı test et ve hata yönetimi ekle
+- [ ] Ayarlardaki şehre göre gerçek vakitler
+- [ ] Geri sayım gerçek zamanlı çalışıyor mu? Doğrula
+
+### 5. Bildirim Sistemi
+- [ ] UNUserNotificationCenter ile bildirim izni al
+- [ ] Namaz vakti bildirimi zamanlama
+- [ ] Ayarlar → "Namaz Bildirimleri" toggle ile yönetim
 
 ---
 

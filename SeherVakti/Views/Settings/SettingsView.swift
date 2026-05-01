@@ -9,6 +9,12 @@ struct SettingsView: View {
      @AppStorage("userName") private var userName: String = "Misafir"
     @AppStorage("userCity") private var userCity: String = "Şehir Seçilmedi"
 
+    @AppStorage("kazaNamazTotal") private var kazaNamazTotal: Int = 0
+@AppStorage("kazaNamazCompleted") private var kazaNamazCompleted: Int = 0
+
+@AppStorage("kazaOrucTotal") private var kazaOrucTotal: Int = 0
+@AppStorage("kazaOrucCompleted") private var kazaOrucCompleted: Int = 0
+
     
     var body: some View {
         NavigationStack {
@@ -56,24 +62,23 @@ struct SettingsView: View {
                             
                             VStack(spacing: 0) {
                                 // Şehir Bilgisi
-                                HStack {
-                                    Image(systemName: "mappin.and.ellipse")
-                                        .font(.title3)
-                                        .foregroundColor(AppTheme.Colors.primary)
-                                        .frame(width: 32)
-                                    VStack(alignment: .leading) {
-                                        Text("Şehir")
-                                            .font(.system(size: 16, weight: .medium, design: .rounded))
-                                            .foregroundColor(AppTheme.Colors.primary)
-                                        Text(userCity)
-                                            .font(.system(size: 12, design: .rounded))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.footnote)
-                                        .foregroundColor(.secondary)
-                                }
+                               HStack {
+    Image(systemName: "mappin.and.ellipse")
+        .font(.title3)
+        .foregroundColor(AppTheme.Colors.primary)
+        .frame(width: 32)
+    
+    Picker("Şehir", selection: $userCity) {
+        ForEach(CityConstants.cities, id: \.self) { city in
+            Text(city).tag(city)
+        }
+    }
+    .pickerStyle(.menu)
+    .font(.system(size: 16, weight: .medium, design: .rounded))
+    .tint(AppTheme.Colors.primary)
+    
+    Spacer()
+}
                                 .padding(.vertical, 12)
                                 
                                 // Hesaplama Yöntemi
@@ -111,6 +116,74 @@ struct SettingsView: View {
                             // Stitch Kuralı: Ambient Shadow (Yumuşak Gölgelendirme)
                             .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
                         }
+                        // --- KAZA BORCU TAKİBİ ---
+                        // --- KAZA BORCU KARTI ---
+VStack(alignment: .leading, spacing: 16) {
+    Text("Kaza Takibi")
+        .font(.system(size: 18, weight: .bold, design: .rounded))
+        .foregroundColor(AppTheme.Colors.primary)
+        .padding(.horizontal, 4)
+    
+    VStack(spacing: 0) {
+        // Kaza Namazı Girişi
+        HStack {
+            Image(systemName: "clock.arrow.circlepath")
+                .font(.title3)
+                .foregroundColor(AppTheme.Colors.primary)
+                .frame(width: 32)
+            
+            Text("Kaza Namazı (Vakit)")
+                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .foregroundColor(AppTheme.Colors.primary)
+            
+            Spacer()
+            
+            // Kullanıcının borcunu gireceği şık kutucuk
+            TextField("0", value: $kazaNamazTotal, format: .number)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.center)
+                .frame(width: 60)
+                .padding(.vertical, 6)
+                .background(AppTheme.Colors.surfaceLow)
+                .cornerRadius(8)
+        }
+        .padding(.vertical, 12)
+        
+        Divider() // Araya ince bir çizgi (Stitch UX)
+        
+        // Kaza Orucu Girişi
+        HStack {
+            Image(systemName: "moon.stars.fill")
+                .font(.title3)
+                .foregroundColor(AppTheme.Colors.primary)
+                .frame(width: 32)
+            
+            Text("Kaza Orucu (Gün)")
+                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .foregroundColor(AppTheme.Colors.primary)
+            
+            Spacer()
+            
+            // Kullanıcının borcunu gireceği şık kutucuk
+            TextField("0", value: $kazaOrucTotal, format: .number)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.center)
+                .frame(width: 60)
+                .padding(.vertical, 6)
+                .background(AppTheme.Colors.surfaceLow)
+                .cornerRadius(8)
+        }
+        .padding(.vertical, 12)
+    }
+    .padding()
+    .background(AppTheme.Colors.surfaceLowest) // Diğer kartlarla aynı zemin
+    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.mainCard)) // Aynı köşelik
+    .shadow(color: .black.opacity(0.05), radius: 5, y: 2) // Aynı gölge
+}
+
+
+
+
                         
                         // --- DESTEK VE UYGULAMA KARTI ---
                         VStack(alignment: .leading, spacing: 16) {

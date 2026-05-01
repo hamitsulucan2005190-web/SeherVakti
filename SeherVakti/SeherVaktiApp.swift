@@ -24,6 +24,8 @@ struct SeherVaktiApp: App {
             PrayerLog.self, //  yeni modelimizi buraya tanıttık
             Item.self,
             JournalEntry.self, // defter modelini tanıttık 
+            DhikrLog.self,
+            FocusLog.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
