@@ -16,6 +16,10 @@ struct NameInputStepView: View {
         
         // Anlık olarak klavyeden girilen metni tutan değişken
         @State private var nameInput: String = ""
+        private var isNameValid:Bool {
+            nameInput.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2
+
+        }
     var body: some View {
         ZStack{
             AppTheme.Colors.background.ignoresSafeArea()
@@ -82,7 +86,7 @@ struct NameInputStepView: View {
                 // --- Devam Et Butonu ---
                                 Button(action: {
                                     // Kullanıcı isim girmediyse boş kalmasın diye Misafir diyoruz
-                                    userName = nameInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Misafir" : nameInput
+                                    userName = nameInput.trimmingCharacters(in: .whitespacesAndNewlines)
                                     // 3. Adıma geçiyoruz
                                     withAnimation(.easeInOut) {
                                         currentStep = 3
@@ -96,9 +100,13 @@ struct NameInputStepView: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding()
-                                    .background(AppTheme.Colors.primary)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                                }
+                                     // isNameValid true → tam yeşil | false → soluk yeşil
+    .background(isNameValid ? AppTheme.Colors.primary : AppTheme.Colors.primary.opacity(0.4))
+    .clipShape(RoundedRectangle(cornerRadius: 16))
+    .animation(.easeInOut(duration: 0.2), value: isNameValid)
+}
+// İsim geçersizse butonu tamamen kapat
+.disabled(!isNameValid)
                 // --- Alt Bilgi ---
                                 Text("ADIM 2 / 4")
                                     .font(.system(size: 12, weight: .bold, design: .rounded))

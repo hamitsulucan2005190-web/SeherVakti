@@ -2,20 +2,7 @@
 
 > **Hedef:** Kullanıcının ibadet hayatını kayıt altına alması, motive olması ve geçmişini takip etmesi.
 
----
 
-## ✅ TAMAMLANANLAR
-
-| Adım | Açıklama |
-|------|----------|
-| ✅ 1 | `DhikrLog.swift` + `FocusLog.swift` SwiftData modelleri |
-| ✅ 2 | `SeherVaktiApp.swift` ModelContainer güncellemesi |
-| ✅ 3 | `FocusViewModel` → `saveFocusLog()` + `saveDhikrLog()` |
-| ✅ 3b | `FocusView` → Oturum kategorisi seçimi (Kur'an, İlim, Tefekkür, Özel) |
-| ✅ 3c | `FocusView` → "Bugünkü Oturumlar" bölümü |
-| ✅ 4 | `PrayerTimesView` → "Kıldım ✓" butonu + PrayerLog kaydı |
-| ✅ 5 | `HistoryView.swift` oluşturuldu (Takip sekmesi) |
-| ✅ 6 | `MainTableView` → "Vakitler" sekmesi → "Takip" sekmesine dönüştürüldü |
 
 ---
 
@@ -114,42 +101,14 @@ Timer sıfırlandığında motivasyon anı kaçırılıyor. Düzeltme:
 
 ---
 
-## 🕌 Kaza Takip Sistemi — Mimari Kararı
 
-### Neden AppStorage? (SwiftData değil)
 
-Kaza borcu bir **liste değil, sayı**:
-- "150 vakit kaza namazım var" → tek bir Int
-- "15 gün kaza orucum var" → tek bir Int
-
-SwiftData satır satır kayıt içindir. Tek sayı için `@AppStorage` çok daha temiz.
-
-### Veri Modeli (AppStorage)
-
-```swift
-// Ayarlar ekranında kullanıcının girdiği borç miktarı
-@AppStorage("kazaNamazTotal")     var kazaNamazTotal: Int = 0
-@AppStorage("kazaNamazCompleted") var kazaNamazCompleted: Int = 0
-
-@AppStorage("kazaOrucTotal")      var kazaOrucTotal: Int = 0
-@AppStorage("kazaOrucCompleted")  var kazaOrucCompleted: Int = 0
-
-// Kalan borç hesabı (computed):
-var kazaNamazRemaining: Int { kazaNamazTotal - kazaNamazCompleted }
-var kazaOrucRemaining: Int  { kazaOrucTotal  - kazaOrucCompleted  }
 ```
 
 ### Kullanıcı Akışı
 
 ```
-Ayarlar → "Kaza Borcu" bölümü:
-  → Kaza Namazı: [120] vakit (kullanıcı girer, 5 vakit = 1 gün)
-  → Kaza Orucu:  [15]  gün   (kullanıcı girer)
 
-Takip sekmesi:
-  → İlerleme çubuğu: "45/120 vakit kaza kıldın"
-  → [+ Bugün Kaza Kıldım] → her basışta +1 (veya +5 = 1 günlük kaza)
-```
 
 ### Fıkhi Not
 
@@ -174,26 +133,7 @@ let hadiths = [
 
 ---
 
-## 🎓 Öğrenilecek Swift Konuları
-
-| Konu | Nerede? |
-|------|---------|
-| `@AppStorage` ile sayaç yönetimi | Kaza Takip Sistemi |
-| `@Query` ile bugün filtresi | FocusView, DashboardView |
-| `sheet` ile success ekranı | FocusView timer bitişi |
-| `Timer` + computed property | Streak hesabı |
-| `reduce()` ile toplam | Dashboard istatistikleri |
 
 ---
 
-## 🛣️ Güncel Uygulama Sırası
 
-1. ✅ Model Temeli tamamlandı
-2. ✅ FocusView tamamlandı
-3. ✅ PrayerTimesView "Kıldım" butonu tamamlandı
-4. ✅ HistoryView + MainTableView "Takip" sekmesi tamamlandı
-5. → **Şu An:** Dashboard yeniden tasarımı (Streak + Hadis kartı)
-6. → **Sonra:** SettingsView + HistoryView Kaza Takip Sistemi
-7. → **Sonra:** FocusView Success Screen
-8. → **Sonra:** Bildirim Sistemi
-9. → **Sonra:** Gerçek Namaz API doğrulama

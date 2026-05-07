@@ -24,11 +24,11 @@ struct DashboardView: View {
         return formatter.string(from: Date())
     }
     
-    // Namaz serisini (Streak) hesaplayan fonksiyon
-    private func calculateStreak() -> Int {
+    // Genel bir seri hesaplama fonksiyonu (Herhangi bir tarih listesi alır)
+    private func calculateStreak(from  dates : [Date]) -> Int {
         let calendar = Calendar.current
-        let dates = logs.map { calendar.startOfDay(for: $0.date) }
-        let uniqueDates = Array(Set(dates)).sorted(by: >)
+        let uniqueDates = Array(Set(dates.map { calendar.startOfDay(for: $0) })).sorted(by: >)
+
         
         guard let firstDate = uniqueDates.first else { return 0 }
         
@@ -50,6 +50,12 @@ struct DashboardView: View {
         }
         return streak
     }
+
+    // Kategorilere göre serileri ayrı ayrı hesaplıyoruz
+    private var prayerStreak: Int { calculateStreak(from: logs.map { $0.date }) }
+    private var focusStreak: Int { calculateStreak(from: focusLogs.map { $0.date }) }
+    private var dhikrStreak: Int { calculateStreak(from: dhikrLogs.map { $0.date }) }
+
     
     // Dün çekilen toplam zikir sayısı
     private var yesterdayDhikrCount: Int {
@@ -76,9 +82,12 @@ struct DashboardView: View {
                 // 1. Selamlama ve Tarih
                 headerSection
                 
-                // 2. Seri (Streak) Kartı
-                StreakCard(streakCount: calculateStreak())
-                
+                // seri (streak kartları )
+                 HStack(spacing: 12) {
+                    MiniStreakCard(title: "Namaz", icon: "🕌", streak: prayerStreak, color: .green)
+                    MiniStreakCard(title: "Odak", icon: "🧠", streak: focusStreak, color: AppTheme.Colors.primary)
+                    MiniStreakCard(title: "Zikir", icon: "📿", streak: dhikrStreak, color: .orange)
+                }
                 // 3. Vakit Yükleme Durumu
                 if viewModel.isLoading {
                     ProgressView("Vakitler Yükleniyor...").padding()
@@ -166,22 +175,30 @@ struct DashboardView: View {
 
 // MARK: - Supporting Views
 
-struct StreakCard: View {
-    let streakCount: Int
+// Yan yana dizilecek küçük seri kartları
+struct MiniStreakCard: View {
+    let title: String
+    let icon: String
+    let streak: Int
+    let color: Color
+    
     var body: some View {
-        HStack(spacing: 15) {
+        VStack(spacing: 8) {
             ZStack {
-                Circle().fill(Color.orange.opacity(0.2)).frame(width: 50, height: 50)
-                Text("🔥").font(.system(size: 25))
+                Circle().fill(color.opacity(0.15)).frame(width: 40, height: 40)
+                Text(icon).font(.system(size: 20))
             }
-            VStack(alignment: .leading, spacing: 2) {
-                Text("\(streakCount) Günlük Seri!").font(.system(.headline, design: .rounded))
-                Text(streakCount > 0 ? "Maşallah, bozmadan devam et!" : "Bugün bir kayıt gir ve seriyi başlat!")
-                    .font(.system(.caption, design: .rounded)).foregroundColor(.secondary)
-            }
-            Spacer()
+            Text("\(streak) Gün")
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+            Text(title)
+                .font(.system(size: 11, weight: .medium, design: .rounded))
+                .foregroundColor(.secondary)
         }
-        .padding().background(AppTheme.Colors.surfaceLow).cornerRadius(15)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(AppTheme.Colors.surfaceLowest)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .shadow(color: .black.opacity(0.04), radius: 5, y: 2)
     }
 }
 
